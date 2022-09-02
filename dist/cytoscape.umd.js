@@ -1,16 +1,16 @@
 /**
  * Copyright (c) 2016-2022, The Cytoscape Consortium.
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the “Software”), to deal in
  * the Software without restriction, including without limitation the rights to
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
  * of the Software, and to permit persons to whom the Software is furnished to do
  * so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -133,6 +133,63 @@
 
   function _nonIterableRest() {
     throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
+  function _createForOfIteratorHelper(o, allowArrayLike) {
+    var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+
+    if (!it) {
+      if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+        if (it) o = it;
+        var i = 0;
+
+        var F = function () {};
+
+        return {
+          s: F,
+          n: function () {
+            if (i >= o.length) return {
+              done: true
+            };
+            return {
+              done: false,
+              value: o[i++]
+            };
+          },
+          e: function (e) {
+            throw e;
+          },
+          f: F
+        };
+      }
+
+      throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+    }
+
+    var normalCompletion = true,
+        didErr = false,
+        err;
+    return {
+      s: function () {
+        it = it.call(o);
+      },
+      n: function () {
+        var step = it.next();
+        normalCompletion = step.done;
+        return step;
+      },
+      e: function (e) {
+        didErr = true;
+        err = e;
+      },
+      f: function () {
+        try {
+          if (!normalCompletion && it.return != null) it.return();
+        } finally {
+          if (didErr) throw err;
+        }
+      }
+    };
   }
 
   var window$1 = typeof window === 'undefined' ? null : window; // eslint-disable-line no-undef
@@ -11750,7 +11807,7 @@
 
               updateBounds(bounds, ex1 - wHalf, ey1 - wHalf, ex2 + wHalf, ey2 + wHalf);
             }
-          } else if (curveStyle === 'bezier' || curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'taxi') {
+          } else if (curveStyle === 'bezier' || curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'taxi' || curveStyle === 'complex-taxi') {
             var pts;
 
             switch (curveStyle) {
@@ -18247,7 +18304,7 @@
         enums: ['solid', 'dotted', 'dashed', 'double']
       },
       curveStyle: {
-        enums: ['bezier', 'unbundled-bezier', 'haystack', 'segments', 'straight', 'straight-triangle', 'taxi']
+        enums: ['bezier', 'unbundled-bezier', 'haystack', 'segments', 'straight', 'straight-triangle', 'taxi', 'complex-taxi']
       },
       fontFamily: {
         regex: '^([\\w- \\"]+(?:\\s*,\\s*[\\w- \\"]+)*)$'
@@ -24273,6 +24330,270 @@ var printLayoutInfo;
     return cachedVal;
   };
 
+  // Calculates the distance between the endpoints of a line segment.
+  function lineLength(line){
+    return Math.sqrt(Math.pow(line[1][0] - line[0][0], 2) + Math.pow(line[1][1] - line[0][1], 2));
+  }
+
+  // See https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain#JavaScript
+  // and https://math.stackexchange.com/questions/274712/calculate-on-which-side-of-a-straight-line-is-a-given-point-located
+  function cross (a, b, o){
+    return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  }
+
+  // Closes a polygon if it's not closed already. Does not modify input polygon.
+  function close(polygon){
+    return isClosed(polygon) ? polygon : [...polygon, polygon[0]];
+  }
+
+  // Tests whether a polygon is closed
+  function isClosed(polygon){
+    const first = polygon[0],
+          last = polygon[polygon.length - 1];
+    return first[0] === last[0] && first[1] === last[1];
+  }
+
+  function pointOnLine(point, line, epsilon = 0){
+    const l = lineLength(line);
+    return pointWithLine(point, line, epsilon) && lineLength([line[0], point]) <= l && lineLength([line[1], point]) <= l;
+  }
+  function pointWithLine(point, line, epsilon = 0){
+    return Math.abs(cross(point, line[0], line[1])) <= epsilon;
+  }
+
+  // Determines if lineA intersects lineB.
+  // Returns a boolean.
+  function lineIntersectsLine(lineA, lineB) {
+    const [[a0x, a0y], [a1x, a1y]] = lineA,
+          [[b0x, b0y], [b1x, b1y]] = lineB;
+    
+    // Test for shared points
+    if (a0x === b0x && a0y === b0y) return true;
+    if (a1x === b1x && a1y === b1y) return true;
+
+    // Test for point on line
+    if (pointOnLine(lineA[0], lineB) || pointOnLine(lineA[1], lineB)) return true;
+    if (pointOnLine(lineB[0], lineA) || pointOnLine(lineB[1], lineA)) return true;
+
+    const denom = ((b1y - b0y) * (a1x - a0x)) - ((b1x - b0x) * (a1y - a0y));
+    
+    if (denom === 0) return false;
+    
+    const deltaY = a0y - b0y,
+          deltaX = a0x - b0x,
+          numer0 = ((b1x - b0x) * deltaY) - ((b1y - b0y) * deltaX),
+          numer1 = ((a1x - a0x) * deltaY) - ((a1y - a0y) * deltaX),
+          quotA = numer0 / denom,
+          quotB = numer1 / denom;
+
+    return quotA > 0 && quotA < 1 && quotB > 0 && quotB < 1;
+  }
+
+  // Determines whether a line intersects a polygon.
+  // Returns a boolean.
+  function lineIntersectsPolygon(line, polygon){
+    let intersects = false;
+    const closed = close(polygon);
+
+    for (let i = 0, l = closed.length - 1; i < l; i++){
+      const v0 = closed[i],
+            v1 = closed[i + 1];
+      
+      if (lineIntersectsLine(line, [v0, v1]) || (pointOnLine(v0, line) && pointOnLine(v1, line))){
+        intersects = true;
+        break;
+      }
+    }
+
+    return intersects;
+  }
+
+  function findComplexTaxiPoints(edge, pairInfo) {
+    // Taxicab geometry with two turns maximum
+    var rs = edge._private.rscratch;
+    rs.edgeType = 'segments';
+    var VERTICAL = 'vertical';
+    var HORIZONTAL = 'horizontal';
+    var LEFTWARD = 'leftward';
+    var RIGHTWARD = 'rightward';
+    var DOWNWARD = 'downward';
+    var UPWARD = 'upward';
+    var AUTO = 'auto';
+    var posPts = pairInfo.posPts,
+        srcW = pairInfo.srcW,
+        srcH = pairInfo.srcH,
+        tgtW = pairInfo.tgtW,
+        tgtH = pairInfo.tgtH;
+    var edgeDistances = edge.pstyle('edge-distances').value;
+    var dIncludesNodeBody = edgeDistances !== 'node-position';
+    var taxiDir = edge.pstyle('taxi-direction').value;
+    var rawTaxiDir = taxiDir; // unprocessed value
+
+    var taxiTurn = edge.pstyle('taxi-turn');
+    var turnIsPercent = taxiTurn.units === '%';
+    var taxiTurnPfVal = taxiTurn.pfValue;
+    var turnIsNegative = taxiTurnPfVal < 0; // i.e. from target side
+    // let minD = edge.pstyle('taxi-turn-min-distance').pfValue;
+
+    var dw = dIncludesNodeBody ? (srcW + tgtW) / 2 : 0;
+    var dh = dIncludesNodeBody ? (srcH + tgtH) / 2 : 0;
+    var pdx = posPts.x2 - posPts.x1;
+    var pdy = posPts.y2 - posPts.y1; // take away the effective w/h from the magnitude of the delta value
+
+    var subDWH = function subDWH(dxy, dwh) {
+      if (dxy > 0) {
+        return Math.max(dxy - dwh, 0);
+      } else {
+        return Math.min(dxy + dwh, 0);
+      }
+    };
+
+    var dx = subDWH(pdx, dw);
+    var dy = subDWH(pdy, dh);
+    var isExplicitDir = false;
+
+    if (rawTaxiDir === AUTO) {
+      taxiDir = Math.abs(dx) > Math.abs(dy) ? HORIZONTAL : VERTICAL;
+    } else if (rawTaxiDir === UPWARD || rawTaxiDir === DOWNWARD) {
+      taxiDir = VERTICAL;
+      isExplicitDir = true;
+    } else if (rawTaxiDir === LEFTWARD || rawTaxiDir === RIGHTWARD) {
+      taxiDir = HORIZONTAL;
+      isExplicitDir = true;
+    }
+
+    var isVert = taxiDir === VERTICAL;
+    var l = isVert ? dy : dx;
+    var pl = isVert ? pdy : pdx;
+    var sgnL = signum(pl);
+
+    if (!(isExplicitDir && (turnIsPercent || turnIsNegative)) // forcing in this case would cause weird growing in the opposite direction
+    && (rawTaxiDir === DOWNWARD && pl < 0 || rawTaxiDir === UPWARD && pl > 0 || rawTaxiDir === LEFTWARD && pl > 0 || rawTaxiDir === RIGHTWARD && pl < 0)) {
+      sgnL *= -1;
+      l = sgnL * Math.abs(l);
+    }
+
+    var d;
+
+    if (turnIsPercent) {
+      var p = taxiTurnPfVal < 0 ? 1 + taxiTurnPfVal : taxiTurnPfVal;
+      d = p * l;
+    } else {
+      var k = taxiTurnPfVal < 0 ? l : 0;
+      d = k + taxiTurnPfVal * sgnL;
+    }
+
+    var nodes = this.cy.nodes("[id!=\"".concat(edge.data('source'), "\"][id!=\"").concat(edge.data('target'), "\"]")); // console.log(edge.id(), pairInfo);
+
+    var sourceEndPoint = pairInfo.srcPos;
+    var targetEndPoint = pairInfo.tgtPos;
+
+    if (isVert) {
+      console.warn('complex-taxi vertical not supported');
+      var y = posPts.y1 + d + (dIncludesNodeBody ? srcH / 2 * sgnL : 0);
+      var x1 = posPts.x1,
+          x2 = posPts.x2;
+      rs.segpts = [x1, y, x2, y];
+    } else {
+      // horizontal
+      var x = posPts.x1 + d + (dIncludesNodeBody ? srcW / 2 * sgnL : 0);
+      var y1 = posPts.y1,
+          y2 = posPts.y2;
+      var allSegments = [{
+        x1: sourceEndPoint.x,
+        y1: sourceEndPoint.y,
+        x2: x,
+        y2: y1
+      }, {
+        x1: x,
+        y1: y1,
+        x2: x,
+        y2: y2
+      }, {
+        x1: x,
+        y1: y2,
+        x2: targetEndPoint.x,
+        y2: targetEndPoint.y
+      }];
+      var newSegments = JSON.parse(JSON.stringify(allSegments));
+      var _d = 10; // console.clear();
+
+      nodes.forEach(function (node, k) {
+        // console.log('start node', node.id());
+        var bb = node.bb(); // console.log({sourceEndPoint, targetEndPoint, bb});
+
+        if (bb.x1 >= sourceEndPoint.x && bb.x1 <= targetEndPoint.x || bb.x2 >= sourceEndPoint.x && bb.x2 <= targetEndPoint.x) {
+          // preliminary exclusion
+          var _iterator = _createForOfIteratorHelper(allSegments.entries()),
+              _step;
+
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              var _step$value = _slicedToArray(_step.value, 2),
+                  i = _step$value[0],
+                  segment = _step$value[1];
+
+              var intersect = lineIntersectsPolygon([[segment.x1, segment.y1], [segment.x2, segment.y2]], [[bb.x1, bb.y1], [bb.x2, bb.y1], [bb.x2, bb.y2], [bb.x1, bb.y2]]);
+
+              if (intersect) {
+                // console.log(i, intersect, segment, bb);
+                if (segment.x1 === segment.x2) {
+                  // segment is vertical
+                  console.warn('complex-taxi vertical segment not supported');
+                } else if (segment.y1 === segment.y2) {
+                  // segment is horizontal
+                  if (bb.x1 - segment.x1 <= _d && bb.x2 - segment.x2 <= _d) {
+                    // segment is already too close to the intersected node
+                    // console.log('close detour!');
+                    newSegments[i - 1].y2 = bb.y2 + _d;
+                    newSegments[i].y1 = bb.y2 + _d;
+                    newSegments[i].y2 = bb.y2 + _d;
+                  } else {
+                    // console.log('adding segments');
+                    newSegments.splice(i + 1, 0, {
+                      x1: bb.x1 - _d,
+                      y1: segment.y1,
+                      x2: bb.x1 - _d,
+                      y2: bb.y2 + _d
+                    }, {
+                      x1: bb.x1 - _d,
+                      y1: bb.y2 + _d,
+                      x2: segment.x2,
+                      y2: bb.y2 + _d
+                    }, {
+                      x1: bb.x2 + _d,
+                      y1: bb.y2 + _d,
+                      x2: segment.x2,
+                      y2: segment.y2
+                    });
+                    newSegments[i].x2 = bb.x1 - _d;
+                  }
+                }
+              } else {// newSegments.push(segment);
+              }
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+        }
+
+        allSegments = JSON.parse(JSON.stringify(newSegments)); // console.log('end node', node.id());
+        // console.log(JSON.parse(JSON.stringify(newSegments)));
+      }); // console.log(newSegments, newSegments.map(({ x2, y2 }) => [x2, y2]).slice(0, -1).flat());
+
+      rs.segpts = newSegments.map(function (_ref) {
+        var x2 = _ref.x2,
+            y2 = _ref.y2;
+        return [x2, y2];
+      }).slice(0, -1).flat(); // rs.segpts = [
+      //     x, y1,
+      //     x, y2
+      // ];
+    }
+  }
+
   var BRp$c = {};
 
   BRp$c.findHaystackPoints = function (edges) {
@@ -24465,6 +24786,8 @@ var printLayoutInfo;
       rs.ctrlpts.push(adjustedMidpt.x + vectorNormInverse.x * distanceFromMidpoint, adjustedMidpt.y + vectorNormInverse.y * distanceFromMidpoint);
     }
   };
+
+  BRp$c.findComplexTaxiPoints = findComplexTaxiPoints;
 
   BRp$c.findTaxiPoints = function (edge, pairInfo) {
     // Taxicab geometry with two turns maximum
@@ -24850,7 +25173,7 @@ var printLayoutInfo;
         continue;
       }
 
-      var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi';
+      var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi' || curveStyle === 'complex-taxi';
       var edgeIsBezier = curveStyle === 'unbundled-bezier' || curveStyle === 'bezier';
       var src = _p.source;
       var tgt = _p.target;
@@ -24937,7 +25260,7 @@ var printLayoutInfo;
 
         var _curveStyle = _edge.pstyle('curve-style').value;
 
-        var _edgeIsUnbundled = _curveStyle === 'unbundled-bezier' || _curveStyle === 'segments' || _curveStyle === 'taxi'; // whether the normalised pair order is the reverse of the edge's src-tgt order
+        var _edgeIsUnbundled = _curveStyle === 'unbundled-bezier' || _curveStyle === 'segments' || _curveStyle === 'taxi' || _curveStyle === 'complex-taxi'; // whether the normalised pair order is the reverse of the edge's src-tgt order
 
 
         var edgeIsSwapped = !src.same(_edge.source());
@@ -25037,6 +25360,8 @@ var printLayoutInfo;
           _this.findSegmentsPoints(_edge, passedPairInfo);
         } else if (_curveStyle === 'taxi') {
           _this.findTaxiPoints(_edge, passedPairInfo);
+        } else if (_curveStyle === 'complex-taxi') {
+          _this.findComplexTaxiPoints(_edge, passedPairInfo);
         } else if (_curveStyle === 'straight' || !_edgeIsUnbundled && pairInfo.eles.length % 2 === 1 && _i2 === Math.floor(pairInfo.eles.length / 2)) {
           _this.findStraightEdgePoints(_edge);
         } else {
@@ -25165,7 +25490,7 @@ var printLayoutInfo;
     var curveStyle = edge.pstyle('curve-style').value;
     var rs = edge._private.rscratch;
     var et = rs.edgeType;
-    var taxi = curveStyle === 'taxi';
+    var taxi = curveStyle === 'taxi' || curveStyle === 'complex-taxi';
     var self = et === 'self' || et === 'compound';
     var bezier = et === 'bezier' || et === 'multibezier' || self;
     var multi = et !== 'bezier';
@@ -33985,7 +34310,7 @@ var printLayoutInfo;
     return style;
   };
 
-  var version = "3.22.1";
+  var version = "snapshot";
 
   var cytoscape = function cytoscape(options) {
     // if no options specified, use default
