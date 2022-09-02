@@ -244,6 +244,173 @@ BRp.findBezierPoints = function( edge, pairInfo, i, edgeIsUnbundled, edgeIsSwapp
   }
 };
 
+BRp.findComplexTaxiPoints = function(edge, pairInfo){
+  // Taxicab geometry with two turns maximum
+
+  const rs = edge._private.rscratch;
+
+  rs.edgeType = 'segments';
+
+  const VERTICAL = 'vertical';
+  const HORIZONTAL = 'horizontal';
+  const LEFTWARD = 'leftward';
+  const RIGHTWARD = 'rightward';
+  const DOWNWARD = 'downward';
+  const UPWARD = 'upward';
+  const AUTO = 'auto';
+
+  const { posPts, srcW, srcH, tgtW, tgtH } = pairInfo;
+  const edgeDistances = edge.pstyle('edge-distances').value;
+  const dIncludesNodeBody = edgeDistances !== 'node-position';
+  let taxiDir = edge.pstyle('taxi-direction').value;
+  let rawTaxiDir = taxiDir; // unprocessed value
+  const taxiTurn = edge.pstyle('taxi-turn');
+  const turnIsPercent = taxiTurn.units === '%';
+  const taxiTurnPfVal = taxiTurn.pfValue;
+  const turnIsNegative = taxiTurnPfVal < 0; // i.e. from target side
+  let minD = edge.pstyle('taxi-turn-min-distance').pfValue;
+  const dw = (dIncludesNodeBody ? (srcW + tgtW)/2 : 0);
+  const dh = (dIncludesNodeBody ? (srcH + tgtH)/2 : 0);
+  const pdx = posPts.x2 - posPts.x1;
+  const pdy = posPts.y2 - posPts.y1;
+
+  // take away the effective w/h from the magnitude of the delta value
+  const subDWH = (dxy, dwh) => {
+    if( dxy > 0 ){
+      return Math.max(dxy - dwh, 0);
+    } else {
+      return Math.min(dxy + dwh, 0);
+    }
+  };
+
+  const dx = subDWH(pdx, dw);
+  const dy = subDWH(pdy, dh);
+
+  let isExplicitDir = false;
+
+  if( rawTaxiDir === AUTO ){
+    taxiDir = Math.abs(dx) > Math.abs(dy) ? HORIZONTAL : VERTICAL;
+  } else if( rawTaxiDir === UPWARD || rawTaxiDir === DOWNWARD ){
+    taxiDir = VERTICAL;
+    isExplicitDir = true;
+  } else if( rawTaxiDir === LEFTWARD || rawTaxiDir === RIGHTWARD ){
+    taxiDir = HORIZONTAL;
+    isExplicitDir = true;
+  }
+
+  const isVert = taxiDir === VERTICAL;
+  let l = isVert ? dy : dx;
+  let pl = isVert ? pdy : pdx;
+  let sgnL = math.signum(pl);
+
+  let forcedDir = false;
+  if(
+      !(isExplicitDir && (turnIsPercent || turnIsNegative)) // forcing in this case would cause weird growing in the opposite direction
+      && (
+          (rawTaxiDir === DOWNWARD && pl < 0)
+          || (rawTaxiDir === UPWARD && pl > 0)
+          || (rawTaxiDir === LEFTWARD && pl > 0)
+          || (rawTaxiDir === RIGHTWARD && pl < 0)
+      )
+  ){
+    sgnL *= -1;
+    l = sgnL * Math.abs(l);
+
+    forcedDir = true;
+  }
+
+  let d;
+
+  if( turnIsPercent ){
+    const p = taxiTurnPfVal < 0 ? (1 + taxiTurnPfVal) : (taxiTurnPfVal);
+
+    d = p * l;
+  } else {
+    const k = taxiTurnPfVal < 0 ? (l) : (0);
+
+    d = k + taxiTurnPfVal * sgnL;
+  }
+
+  const getIsTooClose = d => Math.abs(d) < minD || Math.abs(d) >= Math.abs(l);
+  const isTooCloseSrc = getIsTooClose(d);
+  const isTooCloseTgt =  getIsTooClose(Math.abs(l) - Math.abs(d));
+  const isTooClose = isTooCloseSrc || isTooCloseTgt;
+
+  if( isTooClose && !forcedDir ){ // non-ideal routing
+    if( isVert ){ // vertical fallbacks
+      const lShapeInsideSrc = Math.abs(pl) <= srcH/2;
+      const lShapeInsideTgt = Math.abs(pdx) <= tgtW/2;
+
+      if( lShapeInsideSrc ){ // horizontal Z-shape (direction not respected)
+        let x = (posPts.x1 + posPts.x2)/2;
+        let { y1, y2 } = posPts;
+
+        rs.segpts = [
+          x, y1,
+          x, y2
+        ];
+      } else if( lShapeInsideTgt ){ // vertical Z-shape (distance not respected)
+        let y = (posPts.y1 + posPts.y2)/2;
+        let { x1, x2 } = posPts;
+
+        rs.segpts = [
+          x1, y,
+          x2, y
+        ];
+      } else { // L-shape fallback (turn distance not respected, but works well with tree siblings)
+        rs.segpts = [
+          posPts.x1, posPts.y2
+        ];
+      }
+
+    } else { // horizontal fallbacks
+      const lShapeInsideSrc = Math.abs(pl) <= srcW/2;
+      const lShapeInsideTgt = Math.abs(pdy) <= tgtH/2;
+
+      if( lShapeInsideSrc ){ // vertical Z-shape (direction not respected)
+        let y = (posPts.y1 + posPts.y2)/2;
+        let { x1, x2 } = posPts;
+
+        rs.segpts = [
+          x1, y,
+          x2, y
+        ];
+      } else if( lShapeInsideTgt ){ // horizontal Z-shape (turn distance not respected)
+        let x = (posPts.x1 + posPts.x2)/2;
+        let { y1, y2 } = posPts;
+
+        rs.segpts = [
+          x, y1,
+          x, y2
+        ];
+      } else { // L-shape (turn distance not respected, but works well for tree siblings)
+        rs.segpts = [
+          posPts.x2,
+          posPts.y1
+        ];
+      }
+    }
+  } else { // ideal routing
+    if( isVert ){
+      let y = posPts.y1 + d + (dIncludesNodeBody ? srcH/2 * sgnL : 0);
+      let { x1, x2 } = posPts;
+
+      rs.segpts = [
+        x1, y,
+        x2, y
+      ];
+    } else { // horizontal
+      let x = posPts.x1 + d + (dIncludesNodeBody ? srcW/2 * sgnL : 0);
+      let { y1, y2 } = posPts;
+
+      rs.segpts = [
+        x, y1,
+        x, y2
+      ];
+    }
+  }
+};
+
 BRp.findTaxiPoints = function( edge, pairInfo ){
   // Taxicab geometry with two turns maximum
 
@@ -650,7 +817,7 @@ BRp.findEdgeControlPoints = function( edges ){
       continue;
     }
 
-    let edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi';
+    let edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi' || curveStyle === 'complex-taxi';
     let edgeIsBezier = curveStyle === 'unbundled-bezier' || curveStyle === 'bezier';
     let src = _p.source;
     let tgt = _p.target;
@@ -735,7 +902,7 @@ BRp.findEdgeControlPoints = function( edges ){
       const edge = pairInfo.eles[i];
       const rs = edge[0]._private.rscratch;
       const curveStyle = edge.pstyle( 'curve-style' ).value;
-      const edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'taxi';
+      const edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'taxi' || curveStyle === 'complex-taxi';
 
       // whether the normalised pair order is the reverse of the edge's src-tgt order
       const edgeIsSwapped = !src.same(edge.source());
@@ -855,9 +1022,10 @@ BRp.findEdgeControlPoints = function( edges ){
       } else if( curveStyle === 'segments' ){
         this.findSegmentsPoints(edge, passedPairInfo);
 
-      } else if( curveStyle === 'taxi' ){
-        this.findTaxiPoints(edge, passedPairInfo);
-
+      } else if( curveStyle === 'taxi' ) {
+        this.findTaxiPoints( edge, passedPairInfo );
+      }else if( curveStyle === 'complex-taxi'){
+        this.findComplexTaxiPoints( edge, passedPairInfo );
       } else if(
         curveStyle === 'straight'
         || (

@@ -562,7 +562,7 @@ let boundingBoxImpl = function( ele, options ){
 
         } else if(
           curveStyle === 'bezier' || curveStyle === 'unbundled-bezier'
-          || curveStyle === 'segments' || curveStyle === 'taxi'
+          || curveStyle === 'segments' || curveStyle === 'taxi' || curveStyle === 'complex-taxi'
         ){
           let pts;
 

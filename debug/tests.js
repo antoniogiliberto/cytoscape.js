@@ -73,6 +73,33 @@
   }
 
   test({
+    name: 'complex-taxi',
+    displayName: 'complex-taxi',
+    description: 'complex-taxi',
+    setup: function(){
+      cy.elements().remove();
+      cy.style()
+          .selector('edge')
+          .css({
+            'curve-style': 'complex-taxi'
+          })
+          .update();
+      (
+          fetch('./complex-taxi.json')
+              .then(function(res){
+                return res.json();
+              }).then(function(eleJsons){
+            cy.add(eleJsons);
+
+            // cy.layout({ name: 'grid' }).run();
+
+            cy.center();
+          })
+      );
+    }
+  });
+
+  test({
     name: 'gal',
     displayName: 'Load GAL-filtered',
     description: 'Load an example network',

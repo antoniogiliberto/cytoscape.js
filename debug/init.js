@@ -13,10 +13,10 @@ var cy, defaultSty, options;
 
       .selector('edge')
         .style({
-          'source-arrow-shape': 'triangle-backcurve',
-          'target-arrow-shape': 'triangle',
-          'mid-target-arrow-shape': 'triangle',
-          'mid-source-arrow-shape': 'triangle-backcurve'
+          // 'source-arrow-shape': 'triangle-backcurve',
+          // 'target-arrow-shape': 'triangle',
+          // 'mid-target-arrow-shape': 'triangle',
+          // 'mid-source-arrow-shape': 'triangle-backcurve'
         })
       .selector('#ab')
         .style({
