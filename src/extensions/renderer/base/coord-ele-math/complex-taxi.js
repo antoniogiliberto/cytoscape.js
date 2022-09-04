@@ -1,5 +1,5 @@
 import * as math from '../../../../math';
-import { lineIntersectsPolygon } from 'geometric'
+import { lineIntersectsPolygon } from 'geometric';
 
 export default function findComplexTaxiPoints(edge, pairInfo){
     // Taxicab geometry with two turns maximum
@@ -20,6 +20,9 @@ export default function findComplexTaxiPoints(edge, pairInfo){
     const edgeDistances = edge.pstyle('edge-distances').value;
     const dIncludesNodeBody = edgeDistances !== 'node-position';
     let taxiDir = edge.pstyle('taxi-direction').value;
+    let verticalPadding = edge.pstyle('complex-taxi-vertical-padding').value;
+    let horizontalPadding = edge.pstyle('complex-taxi-vertical-padding').value;
+
     let rawTaxiDir = taxiDir; // unprocessed value
     const taxiTurn = edge.pstyle('taxi-turn');
     const turnIsPercent = taxiTurn.units === '%';
@@ -124,7 +127,7 @@ export default function findComplexTaxiPoints(edge, pairInfo){
             }
         ];
         const newSegments = JSON.parse(JSON.stringify(allSegments));
-        const _d = 10;
+        // const _d = 10;
         // console.clear();
         nodes.forEach((node, k) => {
             // console.log('start node', node.id());
@@ -139,31 +142,36 @@ export default function findComplexTaxiPoints(edge, pairInfo){
                         if(segment.x1 === segment.x2){ // segment is vertical
                             console.warn('complex-taxi vertical segment not supported');
                         } else if(segment.y1 === segment.y2){ // segment is horizontal
-                            if(bb.x1 - segment.x1 <= _d && bb.x2 - segment.x2 <= _d){ // segment is already too close to the intersected node
+                            if(bb.x1 - segment.x1 <= horizontalPadding && bb.x2 - segment.x2 <= horizontalPadding){ // segment is already too close to the intersected node
                                 // console.log('close detour!');
-                                newSegments[i-1].y2 = bb.y2 + _d;
-                                newSegments[i].y1 = bb.y2 + _d;
-                                newSegments[i].y2 = bb.y2 + _d;
+                                newSegments[i-1].y2 = bb.y2 + verticalPadding;
+                                newSegments[i].y1 = bb.y2 + verticalPadding;
+                                newSegments[i].y2 = bb.y2 + verticalPadding;
                             } else {
                                 // console.log('adding segments');
                                 newSegments.splice(i + 1, 0, {
-                                    x1: bb.x1 - _d,
+                                    x1: bb.x1 - horizontalPadding,
                                     y1: segment.y1,
-                                    x2: bb.x1 - _d,
-                                    y2: bb.y2 + _d
+                                    x2: bb.x1 - horizontalPadding,
+                                    y2: bb.y2 + verticalPadding
                                 }, {
-                                    x1: bb.x1 - _d,
-                                    y1: bb.y2 + _d,
-                                    x2: segment.x2,
-                                    y2: bb.y2 + _d
+                                    x1: bb.x1 - horizontalPadding,
+                                    y1: bb.y2 + verticalPadding,
+                                    x2: bb.x2 + horizontalPadding,
+                                    y2: bb.y2 + verticalPadding
                                 }, {
-                                    x1: bb.x2 + _d,
-                                    y1: bb.y2 + _d,
-                                    x2: segment.x2,
+                                    x1: bb.x2 + horizontalPadding,
+                                    y1: bb.y2 + verticalPadding,
+                                    x2: bb.x2 + horizontalPadding,
                                     y2: segment.y2
                                 });
 
-                                newSegments[i].x2 = bb.x1 - _d;
+                                newSegments[i].x2 = bb.x1 - horizontalPadding;
+
+                                if(newSegments[i+4]){
+                                    newSegments[i+4].x1 = bb.x2 + horizontalPadding;
+                                    newSegments[i+4].x2 = bb.x2 + horizontalPadding;
+                                }
                             }
                         }
                     } else {

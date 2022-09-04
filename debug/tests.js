@@ -81,7 +81,9 @@
       cy.style()
           .selector('edge')
           .css({
-            'curve-style': 'complex-taxi'
+            'curve-style': 'complex-taxi',
+            'complex-taxi-vertical-padding': 16,
+            'complex-taxi-horizontal-padding': 16,
           })
           .update();
       (
