@@ -16584,7 +16584,7 @@
     desktopTapThreshold: 4,
     touchTapThreshold: 8,
     wheelSensitivity: 1,
-    debug: true,
+    debug: false,
     showFps: false
   });
   var corefn$4 = {
