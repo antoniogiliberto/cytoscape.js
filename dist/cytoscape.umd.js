@@ -18964,6 +18964,14 @@
       type: t.size,
       triggersBounds: diff.any
     }, {
+      name: 'complex-taxi-vertical-padding',
+      type: t.size,
+      triggersBounds: diff.any
+    }, {
+      name: 'complex-taxi-horizontal-padding',
+      type: t.size,
+      triggersBounds: diff.any
+    }, {
       name: 'taxi-direction',
       type: t.axisDirection,
       triggersBounds: diff.any
@@ -19342,6 +19350,8 @@
       'taxi-turn': '50%',
       'taxi-turn-min-distance': 10,
       'taxi-direction': 'auto',
+      'complex-taxi-vertical-padding': 10,
+      'complex-taxi-horizontal-padding': 10,
       'edge-distances': 'intersection',
       'curve-style': 'haystack',
       'haystack-radius': 0,
@@ -24427,6 +24437,8 @@ var printLayoutInfo;
     var edgeDistances = edge.pstyle('edge-distances').value;
     var dIncludesNodeBody = edgeDistances !== 'node-position';
     var taxiDir = edge.pstyle('taxi-direction').value;
+    var verticalPadding = edge.pstyle('complex-taxi-vertical-padding').value;
+    var horizontalPadding = edge.pstyle('complex-taxi-vertical-padding').value;
     var rawTaxiDir = taxiDir; // unprocessed value
 
     var taxiTurn = edge.pstyle('taxi-turn');
@@ -24515,8 +24527,8 @@ var printLayoutInfo;
         x2: targetEndPoint.x,
         y2: targetEndPoint.y
       }];
-      var newSegments = JSON.parse(JSON.stringify(allSegments));
-      var _d = 10; // console.clear();
+      var newSegments = JSON.parse(JSON.stringify(allSegments)); // const _d = 10;
+      // console.clear();
 
       nodes.forEach(function (node, k) {
         // console.log('start node', node.id());
@@ -24542,31 +24554,36 @@ var printLayoutInfo;
                   console.warn('complex-taxi vertical segment not supported');
                 } else if (segment.y1 === segment.y2) {
                   // segment is horizontal
-                  if (bb.x1 - segment.x1 <= _d && bb.x2 - segment.x2 <= _d) {
+                  if (bb.x1 - segment.x1 <= horizontalPadding && bb.x2 - segment.x2 <= horizontalPadding) {
                     // segment is already too close to the intersected node
                     // console.log('close detour!');
-                    newSegments[i - 1].y2 = bb.y2 + _d;
-                    newSegments[i].y1 = bb.y2 + _d;
-                    newSegments[i].y2 = bb.y2 + _d;
+                    newSegments[i - 1].y2 = bb.y2 + verticalPadding;
+                    newSegments[i].y1 = bb.y2 + verticalPadding;
+                    newSegments[i].y2 = bb.y2 + verticalPadding;
                   } else {
                     // console.log('adding segments');
                     newSegments.splice(i + 1, 0, {
-                      x1: bb.x1 - _d,
+                      x1: bb.x1 - horizontalPadding,
                       y1: segment.y1,
-                      x2: bb.x1 - _d,
-                      y2: bb.y2 + _d
+                      x2: bb.x1 - horizontalPadding,
+                      y2: bb.y2 + verticalPadding
                     }, {
-                      x1: bb.x1 - _d,
-                      y1: bb.y2 + _d,
-                      x2: segment.x2,
-                      y2: bb.y2 + _d
+                      x1: bb.x1 - horizontalPadding,
+                      y1: bb.y2 + verticalPadding,
+                      x2: bb.x2 + horizontalPadding,
+                      y2: bb.y2 + verticalPadding
                     }, {
-                      x1: bb.x2 + _d,
-                      y1: bb.y2 + _d,
-                      x2: segment.x2,
+                      x1: bb.x2 + horizontalPadding,
+                      y1: bb.y2 + verticalPadding,
+                      x2: bb.x2 + horizontalPadding,
                       y2: segment.y2
                     });
-                    newSegments[i].x2 = bb.x1 - _d;
+                    newSegments[i].x2 = bb.x1 - horizontalPadding;
+
+                    if (newSegments[i + 4]) {
+                      newSegments[i + 4].x1 = bb.x2 + horizontalPadding;
+                      newSegments[i + 4].x2 = bb.x2 + horizontalPadding;
+                    }
                   }
                 }
               } else {// newSegments.push(segment);
