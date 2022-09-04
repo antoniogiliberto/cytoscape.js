@@ -1,53 +1,401 @@
-{
-    "nodes": [
-        {
-            "data": {
-                "id": 1,
-                "name": 1
-            },
-            "position": {
-                "x": -100,
-                "y": 100
-            }
+[
+    {
+        "data": {
+            "id": "inventory-0",
+            "label": "Inventory",
+            "type": "inventory",
+            "accepts": [
+                "asset",
+                "fuel",
+                "material"
+            ]
         },
-        {
-            "data": {
-                "id": 2,
-                "name": 2
-            },
-            "position": {
-                "x": 150,
-                "y": -100
-            }
+        "position": {
+            "x": 0,
+            "y": 0
         },
-        {
-            "data": {
-                "id": 3,
-                "name": 3
-            },
-            "position": {
-                "x": 0,
-                "y": 100
-            }
-        },
-        {
-            "data": {
-                "id": 4,
-                "name": 5
-            },
-            "position": {
-                "x": 0,
-                "y": 190
-            }
+        "style": {
+            "height": "300px"
         }
-    ],
-    "edges": [
-        {
-            "data": {
-                "id": 12,
-                "source": 1,
-                "target": 2
+    },
+    {
+        "data": {
+            "id": "process-4",
+            "label": "Process",
+            "icon": "process",
+            "type": "process",
+            "start": "2022-09-04T07:00:00.000Z",
+            "end": "2022-09-04T10:00:00.000Z",
+            "accepts": [
+                "energy-gas",
+                "energy-power"
+            ],
+            "output": {
+                "output": "bolts",
+                "amount": 1000,
+                "unit": ""
             }
+        },
+        "position": {
+            "x": 200,
+            "y": 64.5
+        },
+        "style": {
+            "height": "165px"
         }
-    ]
-}
+    },
+    {
+        "data": {
+            "id": "inventory-0-process-4",
+            "source": "inventory-0",
+            "target": "process-4"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-5",
+            "label": "output-5",
+            "icon": "asset",
+            "type": "output"
+        },
+        "position": {
+            "x": 350,
+            "y": 0
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-4-output-5",
+            "source": "process-4",
+            "target": "output-5"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-6",
+            "label": "output-6",
+            "icon": "asset",
+            "type": "output"
+        },
+        "position": {
+            "x": 350,
+            "y": 60
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-4-output-6",
+            "source": "process-4",
+            "target": "output-6"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-7",
+            "label": "output-7",
+            "icon": "asset",
+            "type": "output"
+        },
+        "position": {
+            "x": 350.0000000000003,
+            "y": 119.0210982735473
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-4-output-7",
+            "source": "process-4",
+            "target": "output-7"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-8",
+            "label": "Process",
+            "icon": "process",
+            "type": "process",
+            "start": "2022-09-04T07:00:00.000Z",
+            "end": "2022-09-04T10:00:00.000Z",
+            "accepts": [
+                "energy-gas",
+                "energy-power"
+            ],
+            "output": {
+                "output": "bolts",
+                "amount": 1000,
+                "unit": ""
+            }
+        },
+        "position": {
+            "x": 500,
+            "y": 124.5
+        },
+        "style": {
+            "height": "285px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-5-process-8",
+            "source": "output-5",
+            "target": "process-8"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "inventory-0-process-8",
+            "source": "inventory-0",
+            "target": "process-8"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-9",
+            "label": "output-9",
+            "icon": "asset",
+            "type": "output"
+        },
+        "position": {
+            "x": 650,
+            "y": 0
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-8-output-9",
+            "source": "process-8",
+            "target": "output-9"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-10",
+            "label": "output-10",
+            "icon": "asset",
+            "type": "output"
+        },
+        "position": {
+            "x": 650,
+            "y": 60
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-8-output-10",
+            "source": "process-8",
+            "target": "output-10"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-11",
+            "label": "output-11",
+            "icon": "asset",
+            "type": "output"
+        },
+        "position": {
+            "x": 650,
+            "y": 120
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-8-output-11",
+            "source": "process-8",
+            "target": "output-11"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-12",
+            "label": "output-12",
+            "icon": "asset",
+            "type": "output"
+        },
+        "position": {
+            "x": 650,
+            "y": 180
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-8-output-12",
+            "source": "process-8",
+            "target": "output-12"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-13",
+            "label": "output-13",
+            "icon": "asset",
+            "type": "output"
+        },
+        "position": {
+            "x": 650,
+            "y": 240
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-8-output-13",
+            "source": "process-8",
+            "target": "output-13"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "process-14",
+            "label": "Process",
+            "icon": "process",
+            "type": "process",
+            "start": "2022-09-04T07:00:00.000Z",
+            "end": "2022-09-04T10:00:00.000Z",
+            "accepts": [
+                "energy-gas",
+                "energy-power"
+            ],
+            "output": {
+                "output": "bolts",
+                "amount": 1000,
+                "unit": ""
+            }
+        },
+        "position": {
+            "x": 800,
+            "y": 0
+        },
+        "style": {
+            "height": "36px"
+        }
+    },
+    {
+        "data": {
+            "id": "output-7-process-14",
+            "source": "output-7",
+            "target": "process-14"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    },
+    {
+        "data": {
+            "id": "inventory-0-process-14",
+            "source": "inventory-0",
+            "target": "process-14"
+        },
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "style": {
+            "height": "30px"
+        }
+    }
+]

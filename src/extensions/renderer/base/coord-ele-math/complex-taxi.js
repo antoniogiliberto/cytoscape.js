@@ -157,21 +157,21 @@ export default function findComplexTaxiPoints(edge, pairInfo){
                                 }, {
                                     x1: bb.x1 - horizontalPadding,
                                     y1: bb.y2 + verticalPadding,
-                                    x2: bb.x2 + horizontalPadding,
+                                    x2: x, // bb.x2 + horizontalPadding,
                                     y2: bb.y2 + verticalPadding
                                 }, {
-                                    x1: bb.x2 + horizontalPadding,
+                                    x1: x, // bb.x2 + horizontalPadding,
                                     y1: bb.y2 + verticalPadding,
-                                    x2: bb.x2 + horizontalPadding,
+                                    x2: x, // bb.x2 + horizontalPadding,
                                     y2: segment.y2
                                 });
 
                                 newSegments[i].x2 = bb.x1 - horizontalPadding;
 
-                                if(newSegments[i+4]){
-                                    newSegments[i+4].x1 = bb.x2 + horizontalPadding;
-                                    newSegments[i+4].x2 = bb.x2 + horizontalPadding;
-                                }
+                                // if(newSegments[i+4]){
+                                //     newSegments[i+4].x1 = bb.x2 + horizontalPadding;
+                                //     newSegments[i+4].x2 = bb.x2 + horizontalPadding;
+                                // }
                             }
                         }
                     } else {
