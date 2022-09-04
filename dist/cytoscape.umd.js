@@ -24434,8 +24434,10 @@ var printLayoutInfo;
           y2: y2
         });
       } else {
-        if (segments[i].x1 === segments[i].x2 && simplified[i - 1].x2 === segments[i].x1 && simplified[i - 1].x1 === segments[i].x1) {
-          simplified[i - 1].y2 = segments[i].y2;
+        if (simplified[i - 1] && segments[i].x1 === segments[i].x2 && simplified[i - 1].x2 === segments[i].x1 && simplified[i - 1].x1 === segments[i].x1) {
+          if (simplified[i - 1]) {
+            simplified[i - 1].y2 = segments[i].y2;
+          }
         } // else if(segments[i].y1 === segments[i].y2 && simplified[i - 1].y2 === segments[i].y1 && simplified[i - 1].y1 === segments[i].y1){
         //     simplified[i - 1].x2 = segments[i].x2;
         // }
@@ -24592,7 +24594,10 @@ var printLayoutInfo;
                   if (bb.x1 - segment.x1 <= horizontalPadding && bb.x2 - segment.x2 <= horizontalPadding) {
                     // segment is already too close to the intersected node
                     // console.log('close detour!');
-                    newSegments[i - 1].y2 = bb.y2 + verticalPadding;
+                    if (newSegments[i - 1]) {
+                      newSegments[i - 1].y2 = bb.y2 + verticalPadding;
+                    }
+
                     newSegments[i].y1 = bb.y2 + verticalPadding;
                     newSegments[i].y2 = bb.y2 + verticalPadding;
                   } else {
