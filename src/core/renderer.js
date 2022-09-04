@@ -9,7 +9,7 @@ let rendererDefaults = util.defaults({
   desktopTapThreshold: 4,
   touchTapThreshold: 8,
   wheelSensitivity: 1,
-  debug: false,
+  debug: true,
   showFps: false
 });
 

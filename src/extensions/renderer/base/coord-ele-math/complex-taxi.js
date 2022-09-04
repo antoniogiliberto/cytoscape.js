@@ -1,6 +1,27 @@
 import * as math from '../../../../math';
 import { lineIntersectsPolygon } from 'geometric';
 
+function simplifyPath(segments){
+    const simplified = [];
+    segments.forEach(({x1, y1, x2, y2}, i) => {
+        if(!segments[i - 1]){
+            simplified.push({x1, y1, x2, y2});
+        } else {
+            if(segments[i].x1 === segments[i].x2 && simplified[i - 1].x2 === segments[i].x1 && simplified[i - 1].x1 === segments[i].x1){
+                simplified[i - 1].y2 = segments[i].y2;
+            }
+            // else if(segments[i].y1 === segments[i].y2 && simplified[i - 1].y2 === segments[i].y1 && simplified[i - 1].y1 === segments[i].y1){
+            //     simplified[i - 1].x2 = segments[i].x2;
+            // }
+            else {
+                simplified.push({x1, y1, x2, y2});
+            }
+        }
+    });
+    // console.log(simplified);
+    return simplified;
+}
+
 export default function findComplexTaxiPoints(edge, pairInfo){
     // Taxicab geometry with two turns maximum
 
@@ -126,7 +147,7 @@ export default function findComplexTaxiPoints(edge, pairInfo){
                 y2: targetEndPoint.y
             }
         ];
-        const newSegments = JSON.parse(JSON.stringify(allSegments));
+        let newSegments = JSON.parse(JSON.stringify(allSegments));
         // const _d = 10;
         // console.clear();
         nodes.forEach((node, k) => {
@@ -154,12 +175,14 @@ export default function findComplexTaxiPoints(edge, pairInfo){
                                     y1: segment.y1,
                                     x2: bb.x1 - horizontalPadding,
                                     y2: bb.y2 + verticalPadding
-                                }, {
+                                },
+                                {
                                     x1: bb.x1 - horizontalPadding,
                                     y1: bb.y2 + verticalPadding,
                                     x2: x, // bb.x2 + horizontalPadding,
                                     y2: bb.y2 + verticalPadding
-                                }, {
+                                },
+                                {
                                     x1: x, // bb.x2 + horizontalPadding,
                                     y1: bb.y2 + verticalPadding,
                                     x2: x, // bb.x2 + horizontalPadding,
@@ -167,15 +190,8 @@ export default function findComplexTaxiPoints(edge, pairInfo){
                                 });
 
                                 newSegments[i].x2 = bb.x1 - horizontalPadding;
-
-                                // if(newSegments[i+4]){
-                                //     newSegments[i+4].x1 = bb.x2 + horizontalPadding;
-                                //     newSegments[i+4].x2 = bb.x2 + horizontalPadding;
-                                // }
                             }
                         }
-                    } else {
-                        // newSegments.push(segment);
                     }
                 }
             }
@@ -183,6 +199,7 @@ export default function findComplexTaxiPoints(edge, pairInfo){
             // console.log('end node', node.id());
             // console.log(JSON.parse(JSON.stringify(newSegments)));
         });
+        newSegments = simplifyPath(JSON.parse(JSON.stringify(newSegments)));
         // console.log(newSegments, newSegments.map(({ x2, y2 }) => [x2, y2]).slice(0, -1).flat());
         rs.segpts = newSegments.map(({ x2, y2 }) => [x2, y2]).slice(0, -1).flat();
         // rs.segpts = [

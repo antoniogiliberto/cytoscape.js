@@ -16584,7 +16584,7 @@
     desktopTapThreshold: 4,
     touchTapThreshold: 8,
     wheelSensitivity: 1,
-    debug: false,
+    debug: true,
     showFps: false
   });
   var corefn$4 = {
@@ -24418,6 +24418,41 @@ var printLayoutInfo;
     return intersects;
   }
 
+  function simplifyPath(segments) {
+    var simplified = [];
+    segments.forEach(function (_ref, i) {
+      var x1 = _ref.x1,
+          y1 = _ref.y1,
+          x2 = _ref.x2,
+          y2 = _ref.y2;
+
+      if (!segments[i - 1]) {
+        simplified.push({
+          x1: x1,
+          y1: y1,
+          x2: x2,
+          y2: y2
+        });
+      } else {
+        if (segments[i].x1 === segments[i].x2 && simplified[i - 1].x2 === segments[i].x1 && simplified[i - 1].x1 === segments[i].x1) {
+          simplified[i - 1].y2 = segments[i].y2;
+        } // else if(segments[i].y1 === segments[i].y2 && simplified[i - 1].y2 === segments[i].y1 && simplified[i - 1].y1 === segments[i].y1){
+        //     simplified[i - 1].x2 = segments[i].x2;
+        // }
+        else {
+          simplified.push({
+            x1: x1,
+            y1: y1,
+            x2: x2,
+            y2: y2
+          });
+        }
+      }
+    }); // console.log(simplified);
+
+    return simplified;
+  }
+
   function findComplexTaxiPoints(edge, pairInfo) {
     // Taxicab geometry with two turns maximum
     var rs = edge._private.rscratch;
@@ -24570,23 +24605,20 @@ var printLayoutInfo;
                     }, {
                       x1: bb.x1 - horizontalPadding,
                       y1: bb.y2 + verticalPadding,
-                      x2: bb.x2 + horizontalPadding,
+                      x2: x,
+                      // bb.x2 + horizontalPadding,
                       y2: bb.y2 + verticalPadding
                     }, {
-                      x1: bb.x2 + horizontalPadding,
+                      x1: x,
+                      // bb.x2 + horizontalPadding,
                       y1: bb.y2 + verticalPadding,
-                      x2: bb.x2 + horizontalPadding,
+                      x2: x,
+                      // bb.x2 + horizontalPadding,
                       y2: segment.y2
                     });
                     newSegments[i].x2 = bb.x1 - horizontalPadding;
-
-                    if (newSegments[i + 4]) {
-                      newSegments[i + 4].x1 = bb.x2 + horizontalPadding;
-                      newSegments[i + 4].x2 = bb.x2 + horizontalPadding;
-                    }
                   }
                 }
-              } else {// newSegments.push(segment);
               }
             }
           } catch (err) {
@@ -24598,11 +24630,12 @@ var printLayoutInfo;
 
         allSegments = JSON.parse(JSON.stringify(newSegments)); // console.log('end node', node.id());
         // console.log(JSON.parse(JSON.stringify(newSegments)));
-      }); // console.log(newSegments, newSegments.map(({ x2, y2 }) => [x2, y2]).slice(0, -1).flat());
+      });
+      newSegments = simplifyPath(JSON.parse(JSON.stringify(newSegments))); // console.log(newSegments, newSegments.map(({ x2, y2 }) => [x2, y2]).slice(0, -1).flat());
 
-      rs.segpts = newSegments.map(function (_ref) {
-        var x2 = _ref.x2,
-            y2 = _ref.y2;
+      rs.segpts = newSegments.map(function (_ref2) {
+        var x2 = _ref2.x2,
+            y2 = _ref2.y2;
         return [x2, y2];
       }).slice(0, -1).flat(); // rs.segpts = [
       //     x, y1,

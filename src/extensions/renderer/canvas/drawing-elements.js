@@ -185,9 +185,14 @@ CRp.drawLayeredElements = function( context, eles, pxRatio, extent ){
 
 if( process.env.NODE_ENV !== 'production' ){
   CRp.drawDebugPoints = function( context, eles ){
-    let draw = function( x, y, color ){
+    let draw = function( x, y, color, withCoords = false ){
       context.fillStyle = color;
       context.fillRect( x - 1, y - 1, 3, 3 );
+      if(withCoords){
+        context.font = '9px serif';
+        context.fillStyle = '#000';
+        context.fillText(`${Math.round(x)},${Math.round(y)}`, x, y);
+      }
     };
 
     for( let i = 0; i < eles.length; i++ ){
@@ -206,10 +211,10 @@ if( process.env.NODE_ENV !== 'production' ){
           let x = pts[ j ];
           let y = pts[ j + 1 ];
 
-          draw( x, y, 'cyan' );
+          draw( x, y, 'cyan', true );
         }
 
-        draw( rs.midX, rs.midY, 'yellow' );
+        draw( rs.midX, rs.midY, 'yellow', true );
       }
     }
   };
