@@ -3,6 +3,6 @@ export default function findSimplePoints( edge, pairInfo ){
     rs.edgeType = 'segments';
     rs.segpts = [
         pairInfo.tgtPos.x,
-        -pairInfo.srcH / 2,
+        (-pairInfo.srcH / 2) + pairInfo.srcPos.y,
     ];
 }

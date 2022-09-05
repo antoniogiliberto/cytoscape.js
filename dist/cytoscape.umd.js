@@ -18304,7 +18304,7 @@
         enums: ['solid', 'dotted', 'dashed', 'double']
       },
       curveStyle: {
-        enums: ['bezier', 'unbundled-bezier', 'haystack', 'segments', 'straight', 'straight-triangle', 'taxi', 'complex-taxi']
+        enums: ['bezier', 'unbundled-bezier', 'haystack', 'segments', 'straight', 'straight-triangle', 'taxi', 'complex-taxi', 'simple']
       },
       fontFamily: {
         regex: '^([\\w- \\"]+(?:\\s*,\\s*[\\w- \\"]+)*)$'
@@ -24649,6 +24649,12 @@ var printLayoutInfo;
     }
   }
 
+  function findSimplePoints(edge, pairInfo) {
+    var rs = edge._private.rscratch;
+    rs.edgeType = 'segments';
+    rs.segpts = [pairInfo.tgtPos.x, -pairInfo.srcH / 2 + pairInfo.srcPos.y];
+  }
+
   var BRp$c = {};
 
   BRp$c.findHaystackPoints = function (edges) {
@@ -24843,6 +24849,7 @@ var printLayoutInfo;
   };
 
   BRp$c.findComplexTaxiPoints = findComplexTaxiPoints;
+  BRp$c.findSimplePoints = findSimplePoints;
 
   BRp$c.findTaxiPoints = function (edge, pairInfo) {
     // Taxicab geometry with two turns maximum
@@ -25228,7 +25235,7 @@ var printLayoutInfo;
         continue;
       }
 
-      var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi' || curveStyle === 'complex-taxi';
+      var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi' || curveStyle === 'complex-taxi' || curveStyle === 'simple';
       var edgeIsBezier = curveStyle === 'unbundled-bezier' || curveStyle === 'bezier';
       var src = _p.source;
       var tgt = _p.target;
@@ -25415,6 +25422,8 @@ var printLayoutInfo;
           _this.findSegmentsPoints(_edge, passedPairInfo);
         } else if (_curveStyle === 'taxi') {
           _this.findTaxiPoints(_edge, passedPairInfo);
+        } else if (_curveStyle === 'simple') {
+          _this.findSimplePoints(_edge, passedPairInfo);
         } else if (_curveStyle === 'complex-taxi') {
           _this.findComplexTaxiPoints(_edge, passedPairInfo);
         } else if (_curveStyle === 'straight' || !_edgeIsUnbundled && pairInfo.eles.length % 2 === 1 && _i2 === Math.floor(pairInfo.eles.length / 2)) {
@@ -25545,7 +25554,7 @@ var printLayoutInfo;
     var curveStyle = edge.pstyle('curve-style').value;
     var rs = edge._private.rscratch;
     var et = rs.edgeType;
-    var taxi = curveStyle === 'taxi' || curveStyle === 'complex-taxi';
+    var taxi = curveStyle === 'taxi' || curveStyle === 'complex-taxi' || et === 'simple';
     var self = et === 'self' || et === 'compound';
     var bezier = et === 'bezier' || et === 'multibezier' || self;
     var multi = et !== 'bezier';
