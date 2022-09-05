@@ -141,7 +141,7 @@
                         selector: 'edge[source^="inventory"][target^="process"]',
                         style: {
                             'source-endpoint': '50% -50%',
-                            'target-endpoint': '0 -50%',
+                            // 'target-endpoint': '0 -50%',
                             'curve-style': 'simple',
                             // 'segment-weights': '1',
                             // 'segment-distances': '100%',

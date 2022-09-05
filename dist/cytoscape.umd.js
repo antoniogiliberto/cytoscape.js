@@ -24649,12 +24649,6 @@ var printLayoutInfo;
     }
   }
 
-  function findSimplePoints(edge, pairInfo) {
-    var rs = edge._private.rscratch;
-    rs.edgeType = 'segments';
-    rs.segpts = [pairInfo.tgtPos.x, -pairInfo.srcH / 2 + pairInfo.srcPos.y];
-  }
-
   var BRp$c = {};
 
   BRp$c.findHaystackPoints = function (edges) {
@@ -24849,7 +24843,13 @@ var printLayoutInfo;
   };
 
   BRp$c.findComplexTaxiPoints = findComplexTaxiPoints;
-  BRp$c.findSimplePoints = findSimplePoints;
+
+  BRp$c.findSimplePoints = function (edge, pairInfo) {
+    var rs = edge._private.rscratch;
+    rs.edgeType = 'segments';
+    rs.segpts = [pairInfo.tgtPos.x, number$1(rs.startY) ? rs.startY : -pairInfo.srcH / 2 + pairInfo.srcPos.y // (-pairInfo.srcH / 2) + pairInfo.srcPos.y,
+    ];
+  };
 
   BRp$c.findTaxiPoints = function (edge, pairInfo) {
     // Taxicab geometry with two turns maximum
