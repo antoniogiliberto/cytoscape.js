@@ -3,6 +3,7 @@ import * as is from '../../../../is';
 import * as util from '../../../../util';
 import Map from '../../../../map';
 import findComplexTaxiPoints from './complex-taxi';
+import findSimplePoints from './simple';
 
 let BRp = {};
 
@@ -246,6 +247,7 @@ BRp.findBezierPoints = function( edge, pairInfo, i, edgeIsUnbundled, edgeIsSwapp
 };
 
 BRp.findComplexTaxiPoints = findComplexTaxiPoints;
+BRp.findSimplePoints = findSimplePoints;
 
 BRp.findTaxiPoints = function( edge, pairInfo ){
   // Taxicab geometry with two turns maximum
@@ -653,7 +655,7 @@ BRp.findEdgeControlPoints = function( edges ){
       continue;
     }
 
-    let edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi' || curveStyle === 'complex-taxi';
+    let edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi' || curveStyle === 'complex-taxi' || curveStyle === 'simple';
     let edgeIsBezier = curveStyle === 'unbundled-bezier' || curveStyle === 'bezier';
     let src = _p.source;
     let tgt = _p.target;
@@ -860,6 +862,8 @@ BRp.findEdgeControlPoints = function( edges ){
 
       } else if( curveStyle === 'taxi' ) {
         this.findTaxiPoints( edge, passedPairInfo );
+      } else if( curveStyle === 'simple' ) {
+        this.findSimplePoints( edge, passedPairInfo );
       }else if( curveStyle === 'complex-taxi'){
         this.findComplexTaxiPoints( edge, passedPairInfo );
       } else if(

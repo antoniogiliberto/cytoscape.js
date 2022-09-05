@@ -142,9 +142,9 @@
                         style: {
                             'source-endpoint': '50% -50%',
                             'target-endpoint': '0 -50%',
-                            'curve-style': 'segments',
-                            'segment-weights': '1',
-                            'segment-distances': '-150',
+                            'curve-style': 'simple',
+                            // 'segment-weights': '1',
+                            // 'segment-distances': '100%',
                             // 'taxi-direction': 'horizontal',
                             // 'taxi-turn': '150%',
                             // 'taxi-turn-min-distance': 5
