@@ -178,11 +178,13 @@
                     {
                         selector: 'edge[source^="output"][target^="inventory"]',
                         style: {
-                            'curve-style': 'taxi',
-                            'taxi-direction': 'downward',
-                            'taxi-turn': (ele) => {
-                                return 200;
-                            },
+                            'curve-style': 'coords',
+                            'coords-points': [
+                                300,
+                                200,
+                                0,
+                                200
+                            ],
                             'source-endpoint': '0 50%',
                             'target-endpoint': '0 50%',
                         }

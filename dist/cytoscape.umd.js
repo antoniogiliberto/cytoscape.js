@@ -80,8 +80,20 @@
     return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
   }
 
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+  }
+
   function _arrayWithHoles(arr) {
     if (Array.isArray(arr)) return arr;
+  }
+
+  function _iterableToArray(iter) {
+    if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
 
   function _iterableToArrayLimit(arr, i) {
@@ -129,6 +141,10 @@
     for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
 
     return arr2;
+  }
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
   function _nonIterableRest() {
@@ -18304,7 +18320,7 @@
         enums: ['solid', 'dotted', 'dashed', 'double']
       },
       curveStyle: {
-        enums: ['bezier', 'unbundled-bezier', 'haystack', 'segments', 'straight', 'straight-triangle', 'taxi', 'complex-taxi', 'simple']
+        enums: ['bezier', 'unbundled-bezier', 'haystack', 'segments', 'straight', 'straight-triangle', 'taxi', 'complex-taxi', 'simple', 'coords']
       },
       fontFamily: {
         regex: '^([\\w- \\"]+(?:\\s*,\\s*[\\w- \\"]+)*)$'
@@ -18949,6 +18965,10 @@
       triggersBounds: diff.any
     }, {
       name: 'segment-distances',
+      type: t.bidirectionalSizes,
+      triggersBounds: diff.any
+    }, {
+      name: 'coords-points',
       type: t.bidirectionalSizes,
       triggersBounds: diff.any
     }, {
@@ -24851,6 +24871,14 @@ var printLayoutInfo;
     ];
   };
 
+  BRp$c.findCoordsPoints = function (edge, pairInfo) {
+    var rs = edge._private.rscratch;
+    console.log(edge.style('coords-points'));
+    var points = edge.pstyle('coords-points').pfValue;
+    rs.edgeType = 'segments';
+    rs.segpts = _toConsumableArray(points);
+  };
+
   BRp$c.findTaxiPoints = function (edge, pairInfo) {
     // Taxicab geometry with two turns maximum
     var rs = edge._private.rscratch;
@@ -25235,7 +25263,7 @@ var printLayoutInfo;
         continue;
       }
 
-      var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi' || curveStyle === 'complex-taxi' || curveStyle === 'simple';
+      var edgeIsUnbundled = curveStyle === 'unbundled-bezier' || curveStyle === 'segments' || curveStyle === 'straight' || curveStyle === 'straight-triangle' || curveStyle === 'taxi' || curveStyle === 'complex-taxi' || curveStyle === 'simple' || curveStyle === 'coords';
       var edgeIsBezier = curveStyle === 'unbundled-bezier' || curveStyle === 'bezier';
       var src = _p.source;
       var tgt = _p.target;
@@ -25424,6 +25452,8 @@ var printLayoutInfo;
           _this.findTaxiPoints(_edge, passedPairInfo);
         } else if (_curveStyle === 'simple') {
           _this.findSimplePoints(_edge, passedPairInfo);
+        } else if (_curveStyle === 'coords') {
+          _this.findCoordsPoints(_edge, passedPairInfo);
         } else if (_curveStyle === 'complex-taxi') {
           _this.findComplexTaxiPoints(_edge, passedPairInfo);
         } else if (_curveStyle === 'straight' || !_edgeIsUnbundled && pairInfo.eles.length % 2 === 1 && _i2 === Math.floor(pairInfo.eles.length / 2)) {
