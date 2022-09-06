@@ -258,7 +258,6 @@ BRp.findSimplePoints = function (edge, pairInfo) {
 
 BRp.findCoordsPoints = function (edge, pairInfo){
     const rs = edge._private.rscratch;
-    console.log(edge.style('coords-points'));
     const points = edge.pstyle('coords-points').pfValue;
 
     rs.edgeType = 'segments';

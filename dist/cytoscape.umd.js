@@ -24873,7 +24873,6 @@ var printLayoutInfo;
 
   BRp$c.findCoordsPoints = function (edge, pairInfo) {
     var rs = edge._private.rscratch;
-    console.log(edge.style('coords-points'));
     var points = edge.pstyle('coords-points').pfValue;
     rs.edgeType = 'segments';
     rs.segpts = _toConsumableArray(points);
