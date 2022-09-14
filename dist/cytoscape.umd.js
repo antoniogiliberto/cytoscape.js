@@ -24495,7 +24495,7 @@ var printLayoutInfo;
     var dIncludesNodeBody = edgeDistances !== 'node-position';
     var taxiDir = edge.pstyle('taxi-direction').value;
     var verticalPadding = edge.pstyle('complex-taxi-vertical-padding').value;
-    var horizontalPadding = edge.pstyle('complex-taxi-vertical-padding').value;
+    var horizontalPadding = edge.pstyle('complex-taxi-horizontal-padding').value;
     var rawTaxiDir = taxiDir; // unprocessed value
 
     var taxiTurn = edge.pstyle('taxi-turn');

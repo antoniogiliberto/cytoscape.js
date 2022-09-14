@@ -45,7 +45,7 @@ export default function findComplexTaxiPoints(edge, pairInfo){
     const dIncludesNodeBody = edgeDistances !== 'node-position';
     let taxiDir = edge.pstyle('taxi-direction').value;
     let verticalPadding = edge.pstyle('complex-taxi-vertical-padding').value;
-    let horizontalPadding = edge.pstyle('complex-taxi-vertical-padding').value;
+    let horizontalPadding = edge.pstyle('complex-taxi-horizontal-padding').value;
 
     let rawTaxiDir = taxiDir; // unprocessed value
     const taxiTurn = edge.pstyle('taxi-turn');
