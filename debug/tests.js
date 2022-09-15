@@ -141,10 +141,10 @@
                         selector: 'edge[source^="inventory"][target^="process"]',
                         style: {
                             'source-endpoint': '50% -50%',
-                            'target-endpoint': '0 -50%',
-                            'curve-style': 'segments',
-                            'segment-weights': '1',
-                            'segment-distances': '-150',
+                            // 'target-endpoint': '0 -50%',
+                            'curve-style': 'simple',
+                            // 'segment-weights': '1',
+                            // 'segment-distances': '100%',
                             // 'taxi-direction': 'horizontal',
                             // 'taxi-turn': '150%',
                             // 'taxi-turn-min-distance': 5
@@ -178,11 +178,13 @@
                     {
                         selector: 'edge[source^="output"][target^="inventory"]',
                         style: {
-                            'curve-style': 'taxi',
-                            'taxi-direction': 'downward',
-                            'taxi-turn': (ele) => {
-                                return 200;
-                            },
+                            'curve-style': 'coords',
+                            'coords-points': [
+                                300,
+                                200,
+                                0,
+                                200
+                            ],
                             'source-endpoint': '0 50%',
                             'target-endpoint': '0 50%',
                         }

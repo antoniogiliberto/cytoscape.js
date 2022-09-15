@@ -75,6 +75,13 @@
     },
     {
         "data": {
+            "id": "output-5-inventory-0",
+            "source": "output-5",
+            "target": "inventory-0"
+        }
+    },
+    {
+        "data": {
             "id": "process-4-output-5",
             "source": "process-4",
             "target": "output-5"
