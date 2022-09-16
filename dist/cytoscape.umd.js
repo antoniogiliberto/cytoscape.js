@@ -24658,11 +24658,14 @@ var printLayoutInfo;
       });
       newSegments = simplifyPath(JSON.parse(JSON.stringify(newSegments))); // console.log(newSegments, newSegments.map(({ x2, y2 }) => [x2, y2]).slice(0, -1).flat());
 
-      rs.segpts = newSegments.map(function (_ref2) {
+      var segments = newSegments.map(function (_ref2) {
         var x2 = _ref2.x2,
             y2 = _ref2.y2;
         return [x2, y2];
-      }).slice(0, -1).flat(); // rs.segpts = [
+      }).slice(0, -1).flat(); // console.log(segments, rs, rs.endY)
+
+      segments[segments.length - 1] = rs.endY || targetEndPoint.y;
+      rs.segpts = segments; // rs.segpts = [
       //     x, y1,
       //     x, y2
       // ];
